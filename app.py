@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-herokuPort = int(os.getenv("PORT", 33507))
+herokuPort = int(os.getenv("PORT", 17995))
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///main.db'
