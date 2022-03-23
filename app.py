@@ -1,8 +1,15 @@
+import os
+
 from flask import Flask
 from flask_cors import CORS
 from models import db
 from schemas import ma
 from routes import api
+from dotenv import load_dotenv
+
+load_dotenv()
+
+herokuPort = int(os.getenv("PORT", 33507))
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///main.db'
@@ -12,4 +19,4 @@ ma.init_app(app)
 api.init_app(app)
 
 if __name__ == '__main__':
-	app.run(debug=True, port=80)
+	app.run(debug=True, port=herokuPort)
