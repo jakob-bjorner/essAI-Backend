@@ -6,7 +6,7 @@ from models import db
 from schemas import ma
 from routes import api
 
-herokuPort = int(os.environ.get("PORT", 17995))
+herokuPort = int(os.environ.get("PORT"))
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///main.db'
