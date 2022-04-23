@@ -2,7 +2,7 @@ import os
 import openai
 import json
 import requests
-
+from contentfilter import is_too_toxic
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,6 +11,8 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def gpt3Rephrase(message, acceptedValues): # these all will need changed parameters to message, AND acceptedMessages which is formatted correctly
   print("Accepted messages: ")
+  if (is_too_toxic(message)):
+    return ""
   acceptedMessages = ""
   for i in range(len(acceptedValues)):
     acceptedMessages += acceptedValues[i]['original']
@@ -50,12 +52,14 @@ def gpt3Rephrase(message, acceptedValues): # these all will need changed paramet
   response_dict = response["choices"][0] # was a pain parsing this, save lines 38 and 39
   parsed_response = response_dict.text.strip() #this still has newlines in it. 
   parsed_response = parsed_response.replace("\n", "")
-
+  if (is_too_toxic(parsed_response)):
+    return ""
 
   return parsed_response
 
 def gpt3SentenceCompletion(message): #honestly this should be renamed to "commands or misc or something else"
-
+  if (is_too_toxic(message)):
+    return ""
   prompt = \
   f"""
   {message}""" # above message put {parsed_db} 
@@ -117,11 +121,13 @@ def gpt3QA(message):
   response_dict = response["choices"][0] # was a pain parsing this, save lines 38 and 39
   parsed_response = response_dict.text.strip() #this still has newlines in it. 
   parsed_response = parsed_response.replace("\n", "")
-
+  if (is_too_toxic(message)):
+    return ""
   return parsed_response
 
 def gpt3StudyTools(message): 
-
+  if (is_too_toxic(message)):
+    return ""
   prompt = \
   f""" I am a bot designed to help a user study by answering the following question: {message}""" # above message put {parsed_db}
   response = openai.Completion.create(
@@ -136,11 +142,13 @@ def gpt3StudyTools(message):
   response_dict = response["choices"][0] # was a pain parsing this, save lines 38 and 39
   parsed_response = response_dict.text.strip() #this still has newlines in it. 
   parsed_response = parsed_response.replace("\n", "")
-
+  if (is_too_toxic(message)):
+    return ""
   return parsed_response
 
 def gpt3SummarizeForSecondGrader(message): 
-
+  if (is_too_toxic(message)):
+    return ""
   prompt = \
   f""" Summarize this for a second grader: {message}""" # above message put {parsed_db}
   response = openai.Completion.create(
@@ -155,10 +163,13 @@ def gpt3SummarizeForSecondGrader(message):
   response_dict = response["choices"][0] # was a pain parsing this, save lines 38 and 39
   parsed_response = response_dict.text.strip() #this still has newlines in it. 
   parsed_response = parsed_response.replace("\n", "")
-
+  if (is_too_toxic(message)):
+    return ""
   return parsed_response
 
 def gpt3EssayOutline(text):
+  if (is_too_toxic(text)):
+    return ""
   response = openai.Completion.create(
   engine="text-davinci-001",
   prompt=f"I am a highly intelligent bot that creates a formal essay outline:\n\n '{text}'", 
@@ -168,9 +179,14 @@ def gpt3EssayOutline(text):
   frequency_penalty=0.0,
   presence_penalty=0.0
 	)
-  return response.choices[0].text.strip()
+  response = response.choices[0].text.strip()
+  if (is_too_toxic(response)):
+    return ""
+  return response
 
 def gpt3GrammarCorrection(text):
+  if (is_too_toxic(text)):
+    return ""
   response = openai.Completion.create(
   engine="text-davinci-001",
   prompt=f"I am a highly intelligent bot that corrects sentences to standard English:\n\n '{text}'", 
@@ -180,7 +196,10 @@ def gpt3GrammarCorrection(text):
   frequency_penalty=0.0,
   presence_penalty=0.0
 	)
-  return response.choices[0].text.strip()
+  response = response.choices[0].text.strip()
+  if (is_too_toxic(response)):
+    return ""
+  return response
 
 
 if __name__ == "__main__":
