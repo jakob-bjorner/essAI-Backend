@@ -36,7 +36,7 @@ def gpt3Rephrase(message, acceptedValues): # these all will need changed paramet
   {message} -->""" # above message put {parsed_db}
   # return prompt # testing prompt correctness.
   response = openai.Completion.create(
-    engine="text-davinci-001",
+    engine="text-davinci-002",
     prompt=prompt,
     temperature=0,
     max_tokens=60,
@@ -61,6 +61,9 @@ def gpt3Rephrase(message, acceptedValues): # these all will need changed paramet
 def gpt3SentenceCompletion(message, acceptedValues): #honestly this should be renamed to "commands or misc or something else"
   if (is_too_toxic(message)):
     return ""
+  print(acceptedValues)
+  if len(acceptedValues) == 0:
+    acceptedValues = []
   acceptedMessages = ""
   for i in range(len(acceptedValues)):
     acceptedMessages += acceptedValues[i]['original']
@@ -71,12 +74,15 @@ def gpt3SentenceCompletion(message, acceptedValues): #honestly this should be re
   while (message[token] == " "):
     token = token - 1
   message = message[:token + 1]
+  acceptedMessages = acceptedMessages.strip()
   prompt = \
   f"""
-  I am a sentence completion bot and will complete any sentence you give me.
-  Here are some examples:
-  {acceptedMessages}
-  {message} -->""" # above message put {parsed_db} 
+I am a sentence completion bot and will complete any sentence you give me.
+Here are some examples:
+{acceptedMessages}
+I can't get over --> I can't get over how incredible the human world is.
+He's building  --> He's building an Army of Souls to attack the human world.
+{message} -->""" # above message put {parsed_db} 
   # this could be edited, to be more focused towards completing sentence for essays of a particular topic/question.
   print("Prompt is", prompt)
   response = openai.Completion.create(
@@ -126,7 +132,7 @@ def gpt3QA(message):
   Q: {message}?
   A:""" # above message put {parsed_db}
   response = openai.Completion.create(
-    engine="text-davinci-001",
+    engine="text-davinci-002",
     prompt=prompt,
     temperature=0,
     max_tokens=60,
@@ -147,7 +153,7 @@ def gpt3StudyTools(message):
   prompt = \
   f""" I am a bot designed to help a user study by answering the following question: {message}""" # above message put {parsed_db}
   response = openai.Completion.create(
-    engine="text-davinci-001",
+    engine="text-davinci-002",
     prompt=prompt,
     temperature=0,
     max_tokens=60,
@@ -193,7 +199,7 @@ def gpt3EssayOutline(text, acceptedValues):
     acceptedMessages += acceptedValues[i]['rephrased']
     acceptedMessages += "\n"
   response = openai.Completion.create(
-  engine="text-davinci-001",
+  engine="text-davinci-002",
   prompt=f"I am a highly intelligent bot that creates a formal essay outline:\n\n '{text}' \n {acceptedMessages}", 
   temperature=0,
   max_tokens=64,
@@ -210,7 +216,7 @@ def gpt3GrammarCorrection(text):
   if (is_too_toxic(text)):
     return ""
   response = openai.Completion.create(
-  engine="text-davinci-001",
+  engine="text-davinci-002",
   prompt=f"I am a highly intelligent bot that corrects sentences to standard English:\n\n '{text}'", 
   temperature=0,
   max_tokens=60,
