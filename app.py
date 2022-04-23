@@ -1,5 +1,3 @@
-import os
-
 from flask import Flask
 from flask_cors import CORS
 from models import db
@@ -15,3 +13,5 @@ api.init_app(app)
 
 if __name__ == '__main__':
 	app.run(debug=True)
+	#with app.app_context():
+		#db.create_all()
