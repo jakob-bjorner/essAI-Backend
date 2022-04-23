@@ -12,7 +12,7 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 def gpt3Rephrase(message, acceptedValues): # these all will need changed parameters to message, AND acceptedMessages which is formatted correctly
   print("Accepted messages: ")
   if (is_too_toxic(message)):
-    return ""
+    return "message in appropriate"
   acceptedMessages = ""
   for i in range(len(acceptedValues)):
     acceptedMessages += acceptedValues[i]['original']
@@ -53,14 +53,14 @@ def gpt3Rephrase(message, acceptedValues): # these all will need changed paramet
   parsed_response = response_dict.text.strip() #this still has newlines in it. 
   parsed_response = parsed_response.replace("\n", "")
   if (is_too_toxic(parsed_response)):
-    return ""
+    return "message in appropriate"
 
   return parsed_response
 
 
 def gpt3SentenceCompletion(message, acceptedValues): #honestly this should be renamed to "commands or misc or something else"
   if (is_too_toxic(message)):
-    return ""
+    return "message in appropriate"
   print(acceptedValues)
   if len(acceptedValues) == 0:
     acceptedValues = []
@@ -97,13 +97,15 @@ He's building  --> He's building an Army of Souls to attack the human world.
   response_dict = response["choices"][0] # was a pain parsing this, save lines 38 and 39
   parsed_response = response_dict.text.strip() #this still has newlines in it. 
   parsed_response = parsed_response.replace("\n", "")
+  if (is_too_toxic(parsed_response)):
+    return "message in appropriate"
 
   return parsed_response
   
 def gpt3QA(message): 
   """requires a single question."""
   if (is_too_toxic(message)):
-    return ""
+    return "message in appropriate"
   qmark = "?"
   message = message.replace("?","")
   #print("Checked message: " + message)
@@ -143,13 +145,13 @@ def gpt3QA(message):
   response_dict = response["choices"][0] # was a pain parsing this, save lines 38 and 39
   parsed_response = response_dict.text.strip() #this still has newlines in it. 
   parsed_response = parsed_response.replace("\n", "")
-  if (is_too_toxic(message)):
-    return ""
+  if (is_too_toxic(parsed_response)):
+    return "message in appropriate"
   return parsed_response
 
 def gpt3StudyTools(message): 
   if (is_too_toxic(message)):
-    return ""
+    return "message in appropriate"
   prompt = \
   f""" I am a bot designed to help a user study by answering the following question: {message}""" # above message put {parsed_db}
   response = openai.Completion.create(
@@ -164,13 +166,13 @@ def gpt3StudyTools(message):
   response_dict = response["choices"][0] # was a pain parsing this, save lines 38 and 39
   parsed_response = response_dict.text.strip() #this still has newlines in it. 
   parsed_response = parsed_response.replace("\n", "")
-  if (is_too_toxic(message)):
-    return ""
+  if (is_too_toxic(parsed_response)):
+    return "message in appropriate"
   return parsed_response
 
 def gpt3SummarizeForSecondGrader(message): 
   if (is_too_toxic(message)):
-    return ""
+    return "message in appropriate"
   prompt = \
   f""" Summarize this for a second grader: {message}""" # above message put {parsed_db}
   response = openai.Completion.create(
@@ -186,12 +188,12 @@ def gpt3SummarizeForSecondGrader(message):
   parsed_response = response_dict.text.strip() #this still has newlines in it. 
   parsed_response = parsed_response.replace("\n", "")
   if (is_too_toxic(message)):
-    return ""
+    return "message in appropriate"
   return parsed_response
 
 def gpt3EssayOutline(text, acceptedValues):
   if (is_too_toxic(text)):
-    return ""
+    return "message in appropriate"
   acceptedMessages = ""
   for i in range(len(acceptedValues)):
     acceptedMessages += acceptedValues[i]['original']
@@ -209,12 +211,12 @@ def gpt3EssayOutline(text, acceptedValues):
 	)
   response = response.choices[0].text.strip()
   if (is_too_toxic(response)):
-    return ""
+    return "message in appropriate"
   return response
 
 def gpt3GrammarCorrection(text):
   if (is_too_toxic(text)):
-    return ""
+    return "message in appropriate"
   response = openai.Completion.create(
   engine="text-davinci-002",
   prompt=f"I am a highly intelligent bot that corrects sentences to standard English:\n\n '{text}'", 
@@ -226,7 +228,7 @@ def gpt3GrammarCorrection(text):
 	)
   response = response.choices[0].text.strip()
   if (is_too_toxic(response)):
-    return ""
+    return "message in appropriate"
   return response
 
 
