@@ -71,7 +71,6 @@ def gpt3SentenceCompletion(message, acceptedValues): #honestly this should be re
   while (message[token] == " "):
     token = token - 1
   message = message[:token + 1]
-  message = message + " "
   prompt = \
   f"""
   I am a sentence completion bot and will complete any sentence you give me.
