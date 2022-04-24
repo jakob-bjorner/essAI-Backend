@@ -4,36 +4,56 @@ import json
 import requests
 from contentfilter import is_too_toxic
 from dotenv import load_dotenv
+import random
 
 load_dotenv()
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
-
+# 4/23 TODO: PULL FIRST, AND THEN SHUFFLE PREPROCESSED AND ACCEPTED/REJECTEDMESSAGES. TAKE RANDOM 3 AND LAST ONES.
+# USE NORMAL PUSHING PROCESS THEN PUSH TO HEROKU APP using "git push heroku main" ON TOP OF THAT 
 def gpt3Rephrase(message, acceptedValues): # these all will need changed parameters to message, AND acceptedMessages which is formatted correctly
-  print("Accepted messages: ")
+  #print("Accepted values: ", acceptedValues)
   if (is_too_toxic(message)):
     return "message in appropriate"
-  acceptedMessages = ""
-  for i in range(len(acceptedValues)):
-    acceptedMessages += acceptedValues[i]['original']
-    acceptedMessages += " --> "
-    acceptedMessages += acceptedValues[i]['rephrased']
-    acceptedMessages += "\n"
+  completedSample = ""
+  samples = [
+  "The food is very good. --> The food is superb.", "What do you do? --> How do you like to spend your day?",
+  "I really don't like that --> I actually oppose that."]
+  for i in range(len(acceptedValues) - 1): #because this isn't going to be factored in the random, no double counting
+    completedSample += acceptedValues[i]['original']
+    completedSample += " --> "
+    completedSample += acceptedValues[i]['rephrased']
+    completedSample += "\n"
+    samples.append(completedSample)
+    completedSample = ""
+  randomSamples = random.sample(samples, 3)
+  preprocessedStrings = ""
+  #here is where I have to insert all the bad inputs at every odd index
+  for i in range(len(randomSamples)):
+    #check if index is odd or even, then conditionally change to good or bad (but also look at size so might have to make seperate arrays)
+    preprocessedStrings += "Good example:"
+    preprocessedStrings += "\n"
+    preprocessedStrings += randomSamples[i]
+    preprocessedStrings += "\n"
+  lastValueString = "Good example:"
+  lastValueString += "\n"
+  lastValueString += acceptedValues[len(acceptedValues) - 1]['original']
+  lastValueString += " --> "
+  lastValueString += acceptedValues[len(acceptedValues) - 1]['rephrased']
+  preprocessedStrings += lastValueString
+  print(preprocessedStrings)
+  
+
   
   
   #print(acceptedValues[0]['rephrased']) # these are rephrased
   #print(acceptedValues[0]['original']) # these are original
   prompt = \
   f"""
-  I am a sentence rephrasing bot. I will rephrase any sentence you give me.
-  The food is very good. --> The food is superb.
-
-  What do you do? --> How do you like to spend your day?
-
-  I really don't like that --> I actually oppose that.
-
-  {acceptedMessages}
-  {message} -->""" # above message put {parsed_db}
+I am a sentence rephrasing bot. I will rephrase any sentence you give me.
+{preprocessedStrings}
+Good example:
+{message} -->""" # above message put {parsed_db}
   # return prompt # testing prompt correctness.
   response = openai.Completion.create(
     engine="text-davinci-002",
@@ -41,10 +61,10 @@ def gpt3Rephrase(message, acceptedValues): # these all will need changed paramet
     temperature=0,
     max_tokens=60,
     top_p=1,
-    frequency_penalty=0,
+    frequency_penalty=0.4,
     presence_penalty=0
   )
-  
+  print("This is the prompt", prompt)
   #data = requests.get("http://localhost:5000/rephrase-requests")
   #data_json = data.json()
 
@@ -64,34 +84,53 @@ def gpt3SentenceCompletion(message, acceptedValues): #honestly this should be re
   print(acceptedValues)
   if len(acceptedValues) == 0:
     acceptedValues = []
-  acceptedMessages = ""
-  for i in range(len(acceptedValues)):
-    acceptedMessages += acceptedValues[i]['original']
-    acceptedMessages += " --> "
-    acceptedMessages += acceptedValues[i]['rephrased']
-    acceptedMessages += "\n"
   token = len(message) - 1
   while (message[token] == " "):
     token = token - 1
   message = message[:token + 1]
-  acceptedMessages = acceptedMessages.strip()
+  completedSample = ""
+  samples = [
+  "I can't get over --> I can't get over how incredible the human world is.",
+  "He's building  --> He's building an Army of Souls to attack the human world.", "Treat others --> Treat others how you wish to be treated."]
+  for i in range(len(acceptedValues) - 1): #because this isn't going to be factored in the random, no double counting
+    completedSample += acceptedValues[i]['original']
+    completedSample += " --> "
+    completedSample += acceptedValues[i]['rephrased']
+    completedSample += "\n"
+    samples.append(completedSample)
+    completedSample = ""
+  randomSamples = random.sample(samples, 3)
+  preprocessedStrings = ""
+  #here is where I have to insert all the bad inputs at every odd index
+  for i in range(len(randomSamples)):
+    #check if index is odd or even, then conditionally change to good or bad
+    preprocessedStrings += "Good example:"
+    preprocessedStrings += "\n"
+    preprocessedStrings += randomSamples[i]
+    preprocessedStrings += "\n"
+  lastValueString = "Good example:"
+  lastValueString += "\n"
+  lastValueString += acceptedValues[len(acceptedValues) - 1]['original']
+  lastValueString += " --> "
+  lastValueString += acceptedValues[len(acceptedValues) - 1]['rephrased']
+  preprocessedStrings += lastValueString
+  print(preprocessedStrings)
   prompt = \
   f"""
 I am a sentence completion bot and will complete any sentence you give me.
 Here are some examples:
-{acceptedMessages}
-I can't get over --> I can't get over how incredible the human world is.
-He's building  --> He's building an Army of Souls to attack the human world.
+{preprocessedStrings}
+Good example:
 {message} -->""" # above message put {parsed_db} 
   # this could be edited, to be more focused towards completing sentence for essays of a particular topic/question.
   print("Prompt is", prompt)
   response = openai.Completion.create(
-    engine="text-davinci-001",
+    engine="text-davinci-002",
     prompt=prompt,
     temperature=0,
     max_tokens=60,
     top_p=1,
-    frequency_penalty=0,
+    frequency_penalty=0.4,
     presence_penalty=0
   )
   response_dict = response["choices"][0] # was a pain parsing this, save lines 38 and 39
@@ -206,7 +245,7 @@ def gpt3EssayOutline(text, acceptedValues):
   temperature=0,
   max_tokens=64,
   top_p=1.0,
-  frequency_penalty=0.0,
+  frequency_penalty=0.4,
   presence_penalty=0.0
 	)
   response = response.choices[0].text.strip()
