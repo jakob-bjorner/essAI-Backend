@@ -46,11 +46,11 @@ class SentenceCompletionLogListResource(Resource):
 
 class EssayOutlineLogListResource(Resource):
 	def get(self):
-		Essay_Outline_Logs = Sentence_Completion_Log.query.all()
-		return essay_outline_logs_schema.dump(Essay_Outline_Logs)
+		essay_outline_logs = EssayOutlineLog.query.all()
+		return essay_outline_logs_schema.dump(essay_outline_logs)
 
 	def post(self):
-		new_log = Essay_Outline_Log(
+		new_log = EssayOutlineLog(
 			original=request.json['original'],
 			rephrased=request.json['rephrased'],
 			accepted=request.json['accepted']
@@ -73,6 +73,21 @@ class AcceptedEssayOutlineLogListResource(Resource):
 	def get(self):
 		acceptedEssayOutlineLogs = EssayOutlineLog.query.filter(EssayOutlineLog.accepted).all()
 		return essay_outline_logs_schema.dump(acceptedEssayOutlineLogs)
+
+class RejectedRephraseLogListResource(Resource):
+	def get(self):
+		rejectedRephraseLogs = RephraseLog.query.filter(RephraseLog.accepted != True).all()
+		return rephrase_logs_schema.dump(rejectedRephraseLogs)
+
+class RejectedSentenceCompletionLogListResource(Resource):
+	def get(self):
+		rejectedSentenceCompletionLogs = RephraseLog.query.filter(SentenceCompletion.accepted != True).all()
+		return sentence_completion_logs_schema.dump(rejectedSentenceCompletionLogs)
+
+class RejectedEssayOutlineLogListResource(Resource):
+	def get(self):
+		rejectedEssayOutlineLogs = EssayOutlineLog.query.filter(EssayOutlineLog.accepted != True).all()
+		return essay_outline_logs_schema.dump(rejectedEssayOutlineLogs)
 
 class RephraseLogResource(Resource):
 	def get(self, request_id):
@@ -151,7 +166,9 @@ class NewRephraseRequest(Resource):
 		message = request.json['message']
 		a = AcceptedRephraseLogListResource()
 		accepted = a.get()
-		result = gpt3Rephrase(message, accepted)
+		b = RejectedEssayOutlineLogListResource()
+		rejected = b.get()
+		result = gpt3Rephrase(message, accepted, rejected)
 		new_rephrase_request = RephraseRequest(
 			original=message,
 			rephrased=result
@@ -167,7 +184,9 @@ class NewSentenceCompletionRequest(Resource):
 		message = request.json['message']
 		a = AcceptedSentenceCompletionLogListResource()
 		accepted = a.get()
-		result = gpt3SentenceCompletion(message, accepted)
+		b = RejectedSentenceCompletionLogListResource()
+		rejected = b.get()
+		result = gpt3SentenceCompletion(message, accepted, rejected)
 		new_sentence_completion_request = SentenceCompletion(
 			original=message,
 			rephrased=result
@@ -183,7 +202,9 @@ class NewEssayOutlineRequest(Resource):
 		message = request.json['message']
 		a = AcceptedEssayOutlineLogListResource()
 		accepted = a.get()
-		result = gpt3EssayOutline(message, accepted)
+		b = RejectedEssayOutlineLogListResource()
+		rejected = b.get()
+		result = gpt3EssayOutline(message, accepted, rejected)
 		new_essay_outline_request = EssayOutline(
 			original=message,
 			rephrased=result
