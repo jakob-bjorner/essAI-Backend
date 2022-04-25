@@ -81,7 +81,7 @@ class RejectedRephraseLogListResource(Resource):
 
 class RejectedSentenceCompletionLogListResource(Resource):
 	def get(self):
-		rejectedSentenceCompletionLogs = RephraseLog.query.filter(SentenceCompletion.accepted != True).all()
+		rejectedSentenceCompletionLogs = RephraseLog.query.filter(SentenceCompletionLog.accepted != True).all()
 		return sentence_completion_logs_schema.dump(rejectedSentenceCompletionLogs)
 
 class RejectedEssayOutlineLogListResource(Resource):

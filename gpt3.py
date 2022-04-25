@@ -11,14 +11,17 @@ load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 # 4/23 TODO: PULL FIRST, AND THEN SHUFFLE PREPROCESSED AND ACCEPTED/REJECTEDMESSAGES. TAKE RANDOM 3 AND LAST ONES.
 # USE NORMAL PUSHING PROCESS THEN PUSH TO HEROKU APP using "git push heroku main" ON TOP OF THAT 
-def gpt3Rephrase(message, acceptedValues): # these all will need changed parameters to message, AND acceptedMessages which is formatted correctly
+def gpt3Rephrase(message, acceptedValues, rejectedValues): # these all will need changed parameters to message, AND acceptedMessages which is formatted correctly
   #print("Accepted values: ", acceptedValues)
   if (is_too_toxic(message)):
-    return "message in appropriate"
+    return "message inappropriate"
   completedSample = ""
+  completedSampleR = ""
   samples = [
   "The food is very good. --> The food is superb.", "What do you do? --> How do you like to spend your day?",
   "I really don't like that --> I actually oppose that."]
+  samplesR = ["The food is good --> The food is alright", 
+  "I like to play outside --> I love to play outside", "That sounds fun --> That is fun"]
   for i in range(len(acceptedValues) - 1): #because this isn't going to be factored in the random, no double counting
     completedSample += acceptedValues[i]['original']
     completedSample += " --> "
@@ -26,22 +29,61 @@ def gpt3Rephrase(message, acceptedValues): # these all will need changed paramet
     completedSample += "\n"
     samples.append(completedSample)
     completedSample = ""
-  randomSamples = random.sample(samples, 3)
+  randomSamples = random.sample(samples, 3) # this needs adequate size but we guarantee it with 3 bad examples
+
+  for i in range(len(rejectedValues) - 1): #because this isn't going to be factored in the random, no double counting
+    completedSampleR += rejectedValues[i]['original']
+    completedSampleR += " --> "
+    completedSampleR += rejectedValues[i]['rephrased']
+    completedSampleR += "\n"
+    samplesR.append(completedSampleR)
+    completedSampleR = ""
+  randomSamplesR = random.sample(samplesR, 3)
   preprocessedStrings = ""
-  #here is where I have to insert all the bad inputs at every odd index
-  for i in range(len(randomSamples)):
-    #check if index is odd or even, then conditionally change to good or bad (but also look at size so might have to make seperate arrays)
+  #perform a merging process similar to merge sort to alternate them
+  i = 0
+  j = 0
+  count = 0
+  while (i < len(randomSamples) and j < len(randomSamplesR)):
+    if (count % 2 == 0):
+      preprocessedStrings += "Good example:"
+      preprocessedStrings += "\n"
+      preprocessedStrings += randomSamples[i]
+      preprocessedStrings += "\n"
+      i += 1
+    if (count % 2 == 1):
+      preprocessedStrings += "Bad example:"
+      preprocessedStrings += "\n"
+      preprocessedStrings += randomSamplesR[j]
+      preprocessedStrings += "\n"
+      j += 1
+    count += 1
+  while (i < len(randomSamples)):
     preprocessedStrings += "Good example:"
     preprocessedStrings += "\n"
     preprocessedStrings += randomSamples[i]
     preprocessedStrings += "\n"
+    i += 1
+  while (j < len(randomSamplesR)):
+    preprocessedStrings += "Bad example:"
+    preprocessedStrings += "\n"
+    preprocessedStrings += randomSamplesR[j]
+    preprocessedStrings += "\n"
+    j += 1
   lastValueString = "Good example:"
   lastValueString += "\n"
   lastValueString += acceptedValues[len(acceptedValues) - 1]['original']
   lastValueString += " --> "
   lastValueString += acceptedValues[len(acceptedValues) - 1]['rephrased']
   preprocessedStrings += lastValueString
-  print(preprocessedStrings)
+  preprocessedStrings += "\n" #separator
+  lastValueStringR = "Bad example:"
+  lastValueStringR += "\n"
+  lastValueStringR += rejectedValues[len(rejectedValues) - 1]['original']
+  lastValueStringR += " --> "
+  lastValueStringR += rejectedValues[len(rejectedValues) - 1]['rephrased']
+  preprocessedStrings += lastValueStringR
+  
   
 
   
@@ -73,14 +115,14 @@ Good example:
   parsed_response = response_dict.text.strip() #this still has newlines in it. 
   parsed_response = parsed_response.replace("\n", "")
   if (is_too_toxic(parsed_response)):
-    return "message in appropriate"
+    return "message inappropriate"
 
   return parsed_response
 
 
-def gpt3SentenceCompletion(message, acceptedValues): #honestly this should be renamed to "commands or misc or something else"
+def gpt3SentenceCompletion(message, acceptedValues, rejectedValues): #honestly this should be renamed to "commands or misc or something else"
   if (is_too_toxic(message)):
-    return "message in appropriate"
+    return "message inappropriate"
   print(acceptedValues)
   if len(acceptedValues) == 0:
     acceptedValues = []
@@ -89,9 +131,12 @@ def gpt3SentenceCompletion(message, acceptedValues): #honestly this should be re
     token = token - 1
   message = message[:token + 1]
   completedSample = ""
+  completedSampleR = ""
   samples = [
   "I can't get over --> I can't get over how incredible the human world is.",
   "He's building  --> He's building an Army of Souls to attack the human world.", "Treat others --> Treat others how you wish to be treated."]
+  samplesR = ["You are -- > You are not good", 
+  "I am --> I am a bot", "That sounds --> That sounds good"]
   for i in range(len(acceptedValues) - 1): #because this isn't going to be factored in the random, no double counting
     completedSample += acceptedValues[i]['original']
     completedSample += " --> "
@@ -99,22 +144,61 @@ def gpt3SentenceCompletion(message, acceptedValues): #honestly this should be re
     completedSample += "\n"
     samples.append(completedSample)
     completedSample = ""
-  randomSamples = random.sample(samples, 3)
+  randomSamples = random.sample(samples, 3) # this needs adequate size but we guarantee it with 3 bad examples
+
+  for i in range(len(rejectedValues) - 1): #because this isn't going to be factored in the random, no double counting
+    completedSampleR += rejectedValues[i]['original']
+    completedSampleR += " --> "
+    completedSampleR += rejectedValues[i]['rephrased']
+    completedSampleR += "\n"
+    samplesR.append(completedSampleR)
+    completedSampleR = ""
+  randomSamplesR = random.sample(samplesR, 3)
   preprocessedStrings = ""
-  #here is where I have to insert all the bad inputs at every odd index
-  for i in range(len(randomSamples)):
-    #check if index is odd or even, then conditionally change to good or bad
+  #perform a merging process similar to merge sort to alternate them
+  i = 0
+  j = 0
+  count = 0
+  while (i < len(randomSamples) and j < len(randomSamplesR)):
+    if (count % 2 == 0):
+      preprocessedStrings += "Good example:"
+      preprocessedStrings += "\n"
+      preprocessedStrings += randomSamples[i]
+      preprocessedStrings += "\n"
+      i += 1
+    if (count % 2 == 1):
+      preprocessedStrings += "Bad example:"
+      preprocessedStrings += "\n"
+      preprocessedStrings += randomSamplesR[j]
+      preprocessedStrings += "\n"
+      j += 1
+    count += 1
+  while (i < len(randomSamples)):
     preprocessedStrings += "Good example:"
     preprocessedStrings += "\n"
     preprocessedStrings += randomSamples[i]
     preprocessedStrings += "\n"
+    i += 1
+  while (j < len(randomSamplesR)):
+    preprocessedStrings += "Bad example:"
+    preprocessedStrings += "\n"
+    preprocessedStrings += randomSamplesR[j]
+    preprocessedStrings += "\n"
+    j += 1
   lastValueString = "Good example:"
   lastValueString += "\n"
   lastValueString += acceptedValues[len(acceptedValues) - 1]['original']
   lastValueString += " --> "
   lastValueString += acceptedValues[len(acceptedValues) - 1]['rephrased']
   preprocessedStrings += lastValueString
-  print(preprocessedStrings)
+  preprocessedStrings += "\n" #separator
+  lastValueStringR = "Bad example:"
+  lastValueStringR += "\n"
+  lastValueStringR += rejectedValues[len(rejectedValues) - 1]['original']
+  lastValueStringR += " --> "
+  lastValueStringR += rejectedValues[len(rejectedValues) - 1]['rephrased']
+  preprocessedStrings += lastValueStringR
+  
   prompt = \
   f"""
 I am a sentence completion bot and will complete any sentence you give me.
@@ -137,14 +221,14 @@ Good example:
   parsed_response = response_dict.text.strip() #this still has newlines in it. 
   parsed_response = parsed_response.replace("\n", "")
   if (is_too_toxic(parsed_response)):
-    return "message in appropriate"
+    return "message inappropriate"
 
   return parsed_response
   
 def gpt3QA(message): 
   """requires a single question."""
   if (is_too_toxic(message)):
-    return "message in appropriate"
+    return "message inappropriate"
   qmark = "?"
   message = message.replace("?","")
   #print("Checked message: " + message)
@@ -185,12 +269,12 @@ def gpt3QA(message):
   parsed_response = response_dict.text.strip() #this still has newlines in it. 
   parsed_response = parsed_response.replace("\n", "")
   if (is_too_toxic(parsed_response)):
-    return "message in appropriate"
+    return "message inappropriate"
   return parsed_response
 
 def gpt3StudyTools(message): 
   if (is_too_toxic(message)):
-    return "message in appropriate"
+    return "message inappropriate"
   prompt = \
   f""" I am a bot designed to help a user study by answering the following question: {message}""" # above message put {parsed_db}
   response = openai.Completion.create(
@@ -206,12 +290,12 @@ def gpt3StudyTools(message):
   parsed_response = response_dict.text.strip() #this still has newlines in it. 
   parsed_response = parsed_response.replace("\n", "")
   if (is_too_toxic(parsed_response)):
-    return "message in appropriate"
+    return "message inappropriate"
   return parsed_response
 
 def gpt3SummarizeForSecondGrader(message): 
   if (is_too_toxic(message)):
-    return "message in appropriate"
+    return "message inappropriate"
   prompt = \
   f""" Summarize this for a second grader: {message}""" # above message put {parsed_db}
   response = openai.Completion.create(
@@ -227,12 +311,12 @@ def gpt3SummarizeForSecondGrader(message):
   parsed_response = response_dict.text.strip() #this still has newlines in it. 
   parsed_response = parsed_response.replace("\n", "")
   if (is_too_toxic(message)):
-    return "message in appropriate"
+    return "message inappropriate"
   return parsed_response
 
-def gpt3EssayOutline(text, acceptedValues):
+def gpt3EssayOutline(text, acceptedValues, rejectedValues):
   if (is_too_toxic(text)):
-    return "message in appropriate"
+    return "message inappropriate"
   acceptedMessages = ""
   for i in range(len(acceptedValues)):
     acceptedMessages += acceptedValues[i]['original']
@@ -250,12 +334,12 @@ def gpt3EssayOutline(text, acceptedValues):
 	)
   response = response.choices[0].text.strip()
   if (is_too_toxic(response)):
-    return "message in appropriate"
+    return "message inappropriate"
   return response
 
 def gpt3GrammarCorrection(text):
   if (is_too_toxic(text)):
-    return "message in appropriate"
+    return "message inappropriate"
   response = openai.Completion.create(
   engine="text-davinci-002",
   prompt=f"I am a highly intelligent bot that corrects sentences to standard English:\n\n '{text}'", 
@@ -267,7 +351,7 @@ def gpt3GrammarCorrection(text):
 	)
   response = response.choices[0].text.strip()
   if (is_too_toxic(response)):
-    return "message in appropriate"
+    return "message inappropriate"
   return response
 
 
