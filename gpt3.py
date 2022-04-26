@@ -94,7 +94,6 @@ def gpt3Rephrase(message, acceptedValues, rejectedValues): # these all will need
   f"""
 	I am a sentence rephrasing bot. I will rephrase any sentence you give me.
 	{preprocessedStrings}
-	Good example:
 	{message} -->""" # above message put {parsed_db}
   # return prompt # testing prompt correctness.
   response = openai.Completion.create(
