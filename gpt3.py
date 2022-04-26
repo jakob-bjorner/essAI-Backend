@@ -323,9 +323,9 @@ def gpt3EssayOutline(text, acceptedValues, rejectedValues):
     acceptedMessages += " --> "
     acceptedMessages += acceptedValues[i]['rephrased']
     acceptedMessages += "\n"
-  response = openai.Completion.create(
+  response = openai.Completion.create( #greatly simplified this method to not even take accepted values, no point.
   engine="text-davinci-002",
-  prompt=f"I am a highly intelligent bot that creates a formal essay outline:\n\n '{text}' \n {acceptedMessages}", 
+  prompt=f"I am a highly intelligent bot that creates a formal essay outline:\n '{text}'", 
   temperature=0,
   max_tokens=64,
   top_p=1.0,
