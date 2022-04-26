@@ -92,10 +92,10 @@ def gpt3Rephrase(message, acceptedValues, rejectedValues): # these all will need
   #print(acceptedValues[0]['original']) # these are original
   prompt = \
   f"""
-I am a sentence rephrasing bot. I will rephrase any sentence you give me.
-{preprocessedStrings}
-Good example:
-{message} -->""" # above message put {parsed_db}
+	I am a sentence rephrasing bot. I will rephrase any sentence you give me.
+	{preprocessedStrings}
+	Good example:
+	{message} -->""" # above message put {parsed_db}
   # return prompt # testing prompt correctness.
   response = openai.Completion.create(
     engine="text-davinci-002",
@@ -118,7 +118,6 @@ Good example:
     return "message inappropriate"
 
   return parsed_response
-
 
 def gpt3SentenceCompletion(message, acceptedValues, rejectedValues): #honestly this should be renamed to "commands or misc or something else"
   if (is_too_toxic(message)):
@@ -201,11 +200,11 @@ def gpt3SentenceCompletion(message, acceptedValues, rejectedValues): #honestly t
   
   prompt = \
   f"""
-I am a sentence completion bot and will complete any sentence you give me.
-Here are some examples:
-{preprocessedStrings}
-Good example:
-{message} -->""" # above message put {parsed_db} 
+	I am a sentence completion bot and will complete any sentence you give me.
+	Here are some examples:
+	{preprocessedStrings}
+	Good example:
+	{message} -->""" # above message put {parsed_db} 
   # this could be edited, to be more focused towards completing sentence for essays of a particular topic/question.
   print("Prompt is", prompt)
   response = openai.Completion.create(
